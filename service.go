@@ -596,3 +596,60 @@ func (s *Service) GetTeamsByRepositoryPattern(pattern string) []Team {
 
 	return matchingTeams
 }
+
+// GetTeamJiraDashboards returns all JIRA dashboard URLs for a team
+// Dashboards are identified by having a "view" URL and types like "roadmap-dashboard",
+// "workload-dashboard", "scrum-dashboard", etc.
+func (s *Service) GetTeamJiraDashboards(teamName string) []JiraConfig {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+
+	if s.data == nil || s.data.Lookups.Teams == nil {
+		return []JiraConfig{}
+	}
+
+	team, exists := s.data.Lookups.Teams[teamName]
+	if !exists {
+		return []JiraConfig{}
+	}
+
+	var dashboards []JiraConfig
+	for _, jira := range team.Group.Jiras {
+		// A dashboard has a view URL
+		if jira.View != "" {
+			dashboards = append(dashboards, jira)
+		}
+	}
+
+	return dashboards
+}
+
+// GetTeamJiraDashboardByType returns a specific type of JIRA dashboard for a team
+// Common types: "roadmap-dashboard", "workload-dashboard", "scrum-dashboard"
+// Returns nil if the team doesn't have a dashboard of that type
+func (s *Service) GetTeamJiraDashboardByType(teamName string, dashboardType string) *JiraConfig {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+
+	if s.data == nil || s.data.Lookups.Teams == nil {
+		return nil
+	}
+
+	team, exists := s.data.Lookups.Teams[teamName]
+	if !exists {
+		return nil
+	}
+
+	for _, jira := range team.Group.Jiras {
+		if jira.View != "" {
+			// Check if this dashboard has the requested type
+			for _, jiraType := range jira.Types {
+				if jiraType == dashboardType {
+					return &jira
+				}
+			}
+		}
+	}
+
+	return nil
+}

@@ -53,6 +53,8 @@ type ServiceInterface interface {
 	GetAllJiraProjects() []string
 	GetTeamByRepository(repoURL string) *Team
 	GetTeamsByRepositoryPattern(pattern string) []Team
+	GetTeamJiraDashboards(teamName string) []JiraConfig
+	GetTeamJiraDashboardByType(teamName string, dashboardType string) *JiraConfig
 
 	// Data management
 
