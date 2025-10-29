@@ -25,8 +25,39 @@ type Team struct {
 
 // Group contains group metadata
 type Group struct {
-	Type                  GroupType `json:"type"`
-	ResolvedPeopleUIDList []string  `json:"resolved_people_uid_list"`
+	Type                  GroupType    `json:"type"`
+	ResolvedPeopleUIDList []string     `json:"resolved_people_uid_list"`
+	Repos                 []Repository `json:"repos"`
+	Jiras                 []JiraConfig `json:"jiras"`
+	ComponentList         []Component  `json:"component_list"`
+}
+
+// Repository represents a code repository associated with a team
+type Repository struct {
+	RepoName    string `json:"repo_name"`
+	Description string `json:"description"`
+}
+
+// JiraConfig represents JIRA project configuration for a team
+type JiraConfig struct {
+	Project     string   `json:"project"`
+	Component   string   `json:"component"`
+	Types       []string `json:"types"`
+	View        string   `json:"view"`
+	Description string   `json:"description"`
+}
+
+// Component represents a component with its own JIRA configuration
+type Component struct {
+	Type  ComponentType `json:"type"`
+	Jiras []JiraConfig  `json:"jiras"`
+}
+
+// ComponentType contains component type information
+type ComponentType struct {
+	Name           string   `json:"name"`
+	Visualize      bool     `json:"visualize"`
+	VisualizeGroup []string `json:"visualize_group"`
 }
 
 // GroupType contains group type information
@@ -72,6 +103,7 @@ type Indexes struct {
 	Membership       MembershipIndex  `json:"membership"`
 	SlackIDMappings  SlackIDMappings  `json:"slack_id_mappings"`
 	GitHubIDMappings GitHubIDMappings `json:"github_id_mappings"`
+	Jira             JiraIndex        `json:"jira"`
 }
 
 // SlackIDMappings contains Slack ID to UID mappings
@@ -82,6 +114,22 @@ type SlackIDMappings struct {
 // GitHubIDMappings contains GitHub ID to UID mappings
 type GitHubIDMappings struct {
 	GitHubUIDToUID map[string]string `json:"github_id_to_uid"`
+}
+
+// JiraIndex maps JIRA project keys to team/org information
+// The key is the JIRA project key (e.g., "OCPCRT", "ROX")
+// The value contains information about which team/org owns that project
+type JiraIndex map[string]JiraProjectInfo
+
+// JiraProjectInfo contains information about a JIRA project's ownership
+type JiraProjectInfo struct {
+	ProjectLevel []JiraOwner `json:"_project_level"`
+}
+
+// JiraOwner represents a team or org that owns a JIRA project
+type JiraOwner struct {
+	Name string `json:"name"`
+	Type string `json:"type"` // "team" or "org"
 }
 
 // MembershipIndex represents the membership index structure

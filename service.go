@@ -393,3 +393,142 @@ func (s *Service) getUIDFromSlackID(slackID string) string {
 	}
 	return s.data.Indexes.SlackIDMappings.SlackUIDToUID[slackID]
 }
+
+// GetTeamRepositories returns all repositories for a given team
+func (s *Service) GetTeamRepositories(teamName string) []Repository {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+
+	if s.data == nil || s.data.Lookups.Teams == nil {
+		return []Repository{}
+	}
+
+	team, exists := s.data.Lookups.Teams[teamName]
+	if !exists {
+		return []Repository{}
+	}
+
+	return team.Group.Repos
+}
+
+// GetTeamJiraProjects returns all JIRA project configurations for a given team
+func (s *Service) GetTeamJiraProjects(teamName string) []JiraConfig {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+
+	if s.data == nil || s.data.Lookups.Teams == nil {
+		return []JiraConfig{}
+	}
+
+	team, exists := s.data.Lookups.Teams[teamName]
+	if !exists {
+		return []JiraConfig{}
+	}
+
+	return team.Group.Jiras
+}
+
+// GetTeamComponents returns all components for a given team
+func (s *Service) GetTeamComponents(teamName string) []Component {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+
+	if s.data == nil || s.data.Lookups.Teams == nil {
+		return []Component{}
+	}
+
+	team, exists := s.data.Lookups.Teams[teamName]
+	if !exists {
+		return []Component{}
+	}
+
+	return team.Group.ComponentList
+}
+
+// GetTeamByJiraProject returns the team that owns a specific JIRA project
+// Returns nil if no team owns the project
+func (s *Service) GetTeamByJiraProject(projectKey string) *Team {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+
+	if s.data == nil || s.data.Indexes.Jira == nil {
+		return nil
+	}
+
+	projectInfo, exists := s.data.Indexes.Jira[projectKey]
+	if !exists || len(projectInfo.ProjectLevel) == 0 {
+		return nil
+	}
+
+	// Get the first team owner (there's usually only one)
+	for _, owner := range projectInfo.ProjectLevel {
+		if owner.Type == "team" {
+			if team, exists := s.data.Lookups.Teams[owner.Name]; exists {
+				return &team
+			}
+		}
+	}
+
+	return nil
+}
+
+// GetOrgByJiraProject returns the org that owns a specific JIRA project
+// Returns nil if no org owns the project
+func (s *Service) GetOrgByJiraProject(projectKey string) *Org {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+
+	if s.data == nil || s.data.Indexes.Jira == nil {
+		return nil
+	}
+
+	projectInfo, exists := s.data.Indexes.Jira[projectKey]
+	if !exists || len(projectInfo.ProjectLevel) == 0 {
+		return nil
+	}
+
+	// Get the first org owner
+	for _, owner := range projectInfo.ProjectLevel {
+		if owner.Type == "org" {
+			if org, exists := s.data.Lookups.Orgs[owner.Name]; exists {
+				return &org
+			}
+		}
+	}
+
+	return nil
+}
+
+// GetJiraProjectOwners returns all owners (teams and orgs) for a JIRA project
+func (s *Service) GetJiraProjectOwners(projectKey string) []JiraOwner {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+
+	if s.data == nil || s.data.Indexes.Jira == nil {
+		return []JiraOwner{}
+	}
+
+	projectInfo, exists := s.data.Indexes.Jira[projectKey]
+	if !exists {
+		return []JiraOwner{}
+	}
+
+	return projectInfo.ProjectLevel
+}
+
+// GetAllJiraProjects returns all JIRA project keys in the index
+func (s *Service) GetAllJiraProjects() []string {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+
+	if s.data == nil || s.data.Indexes.Jira == nil {
+		return []string{}
+	}
+
+	projects := make([]string, 0, len(s.data.Indexes.Jira))
+	for projectKey := range s.data.Indexes.Jira {
+		projects = append(projects, projectKey)
+	}
+
+	return projects
+}

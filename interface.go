@@ -42,6 +42,16 @@ type ServiceInterface interface {
 	IsSlackUserInOrg(slackID string, orgName string) bool
 	GetUserOrganizations(slackUserID string) []OrgInfo
 
+	// Repository and JIRA queries
+
+	GetTeamRepositories(teamName string) []Repository
+	GetTeamJiraProjects(teamName string) []JiraConfig
+	GetTeamComponents(teamName string) []Component
+	GetTeamByJiraProject(projectKey string) *Team
+	GetOrgByJiraProject(projectKey string) *Org
+	GetJiraProjectOwners(projectKey string) []JiraOwner
+	GetAllJiraProjects() []string
+
 	// Data management
 
 	GetVersion() DataVersion
