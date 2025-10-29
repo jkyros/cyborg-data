@@ -532,3 +532,67 @@ func (s *Service) GetAllJiraProjects() []string {
 
 	return projects
 }
+
+// GetTeamByRepository returns the team that owns a specific repository
+// The repoURL should match exactly (e.g., "https://github.com/openshift/installer")
+// Returns nil if no team owns the repository
+func (s *Service) GetTeamByRepository(repoURL string) *Team {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+
+	if s.data == nil || s.data.Lookups.Teams == nil {
+		return nil
+	}
+
+	// Search through all teams for the repository
+	for _, team := range s.data.Lookups.Teams {
+		for _, repo := range team.Group.Repos {
+			if repo.RepoName == repoURL {
+				teamCopy := team
+				return &teamCopy
+			}
+		}
+	}
+
+	return nil
+}
+
+// GetTeamsByRepositoryPattern returns all teams whose repositories contain the given pattern
+// This is useful for partial matches or when you don't have the exact URL
+// For example: "installer" will match "https://github.com/openshift/installer"
+func (s *Service) GetTeamsByRepositoryPattern(pattern string) []Team {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+
+	if s.data == nil || s.data.Lookups.Teams == nil {
+		return []Team{}
+	}
+
+	var matchingTeams []Team
+	seenTeams := make(map[string]bool) // Avoid duplicates
+
+	// Search through all teams for repositories matching the pattern
+	for _, team := range s.data.Lookups.Teams {
+		for _, repo := range team.Group.Repos {
+			// Use simple substring matching
+			if pattern != "" && len(repo.RepoName) > 0 {
+				// Check if pattern exists in repo name (case-sensitive)
+				found := false
+				for i := 0; i <= len(repo.RepoName)-len(pattern); i++ {
+					if repo.RepoName[i:i+len(pattern)] == pattern {
+						found = true
+						break
+					}
+				}
+
+				if found && !seenTeams[team.Name] {
+					matchingTeams = append(matchingTeams, team)
+					seenTeams[team.Name] = true
+					break // Found a match for this team, move to next team
+				}
+			}
+		}
+	}
+
+	return matchingTeams
+}

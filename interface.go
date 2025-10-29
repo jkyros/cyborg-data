@@ -51,6 +51,8 @@ type ServiceInterface interface {
 	GetOrgByJiraProject(projectKey string) *Org
 	GetJiraProjectOwners(projectKey string) []JiraOwner
 	GetAllJiraProjects() []string
+	GetTeamByRepository(repoURL string) *Team
+	GetTeamsByRepositoryPattern(pattern string) []Team
 
 	// Data management
 
