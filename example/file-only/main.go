@@ -82,4 +82,73 @@ func demonstrateQueries(service *orgdatacore.Service, logger logr.Logger) {
 	if len(orgs) > 0 {
 		logger.Info("Organization membership", "slackID", "U12345678", "orgCount", len(orgs))
 	}
+
+	// Repository queries
+	logger.Info("--- Repository Queries ---")
+	repos := service.GetTeamRepositories("test-team")
+	if len(repos) > 0 {
+		logger.Info("Team repositories", "team", "test-team", "repoCount", len(repos))
+		for _, repo := range repos {
+			logger.Info("  Repository", "url", repo.RepoName, "description", repo.Description)
+		}
+	}
+
+	// Reverse lookup: repository -> team
+	if team := service.GetTeamByRepository("https://github.com/example/test-repo"); team != nil {
+		logger.Info("Repository owner", "repo", "test-repo", "team", team.Name)
+	}
+
+	// Pattern search
+	matchingTeams := service.GetTeamsByRepositoryPattern("test")
+	if len(matchingTeams) > 0 {
+		logger.Info("Pattern search results", "pattern", "test", "matchCount", len(matchingTeams))
+	}
+
+	// JIRA queries
+	logger.Info("--- JIRA Queries ---")
+	jiras := service.GetTeamJiraProjects("test-team")
+	if len(jiras) > 0 {
+		logger.Info("Team JIRA projects", "team", "test-team", "jiraCount", len(jiras))
+		for _, jira := range jiras {
+			if jira.Project != "" {
+				logger.Info("  JIRA project", "project", jira.Project, "component", jira.Component, "types", jira.Types)
+			}
+		}
+	}
+
+	// Reverse lookup: JIRA project -> teams
+	teams := service.GetTeamsByJiraProject("TEST")
+	if len(teams) > 0 {
+		logger.Info("JIRA project owners", "project", "TEST", "teamCount", len(teams))
+		for _, team := range teams {
+			logger.Info("  Team", "name", team.Name)
+		}
+	}
+
+	// Reverse lookup: component -> teams
+	componentTeams := service.GetTeamsByComponent("backend")
+	if len(componentTeams) > 0 {
+		logger.Info("Component owners", "component", "backend", "teamCount", len(componentTeams))
+		for _, team := range componentTeams {
+			logger.Info("  Team", "name", team.Name)
+		}
+	}
+
+	// Dashboard queries
+	dashboards := service.GetTeamJiraDashboards("test-team")
+	if len(dashboards) > 0 {
+		logger.Info("Team dashboards", "team", "test-team", "dashboardCount", len(dashboards))
+		for _, dashboard := range dashboards {
+			logger.Info("  Dashboard", "types", dashboard.Types, "url", dashboard.View)
+		}
+	}
+
+	// Get specific dashboard type
+	if scrumBoard := service.GetTeamJiraDashboardByType("test-team", "scrum-dashboard"); scrumBoard != nil {
+		logger.Info("Scrum board", "team", "test-team", "url", scrumBoard.View)
+	}
+
+	// List all JIRA projects in index
+	allProjects := service.GetAllJiraProjects()
+	logger.Info("All JIRA projects", "projectCount", len(allProjects), "projects", allProjects)
 }

@@ -118,13 +118,10 @@ type GitHubIDMappings struct {
 
 // JiraIndex maps JIRA project keys to team/org information
 // The key is the JIRA project key (e.g., "OCPCRT", "ROX")
-// The value contains information about which team/org owns that project
-type JiraIndex map[string]JiraProjectInfo
-
-// JiraProjectInfo contains information about a JIRA project's ownership
-type JiraProjectInfo struct {
-	ProjectLevel []JiraOwner `json:"_project_level"`
-}
+// The value is a map where keys can be:
+//   - "_project_level" for primary project owners
+//   - Team/component names for sub-project or component-level ownership
+type JiraIndex map[string]map[string][]JiraOwner
 
 // JiraOwner represents a team or org that owns a JIRA project
 type JiraOwner struct {

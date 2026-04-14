@@ -40,11 +40,57 @@
         "uid": "team1",
         "name": "test-team",
         "type": "team",
+        "description": "Test Team for Development",
         "group": {
           "type": {
             "name": "team"
           },
-          "resolved_people_uid_list": ["jsmith", "adoe"]
+          "resolved_people_uid_list": ["jsmith", "adoe"],
+          "repos": [
+            {
+              "repo_name": "https://github.com/example/test-repo",
+              "description": "Main test repository"
+            },
+            {
+              "repo_name": "https://github.com/example/test-tools",
+              "description": "Testing tools and utilities"
+            }
+          ],
+          "jiras": [
+            {
+              "project": "TEST",
+              "types": ["main"]
+            },
+            {
+              "project": "TEST",
+              "component": "Backend",
+              "types": ["bugs"]
+            },
+            {
+              "types": ["scrum-dashboard"],
+              "view": "https://issues.example.com/secure/RapidBoard.jspa?rapidView=123"
+            },
+            {
+              "types": ["roadmap-dashboard"],
+              "view": "https://issues.example.com/secure/PortfolioPlanView.jspa?id=456"
+            }
+          ],
+          "component_list": [
+            {
+              "type": {
+                "name": "backend",
+                "visualize": true,
+                "visualize_group": ["core"]
+              },
+              "jiras": [
+                {
+                  "component": "API",
+                  "project": "TEST",
+                  "types": ["bugs"]
+                }
+              ]
+            }
+          ]
         },
         "resolved_people_uid_list": ["jsmith", "adoe"]
       },
@@ -52,11 +98,29 @@
         "uid": "team2", 
         "name": "platform-team",
         "type": "team",
+        "description": "Platform Infrastructure Team",
         "group": {
           "type": {
             "name": "team"
           },
-          "resolved_people_uid_list": ["bwilson"]
+          "resolved_people_uid_list": ["bwilson"],
+          "repos": [
+            {
+              "repo_name": "https://github.com/example/platform-core",
+              "description": "Core platform services"
+            }
+          ],
+          "jiras": [
+            {
+              "project": "PLAT",
+              "types": ["main"]
+            },
+            {
+              "types": ["workload-dashboard"],
+              "view": "https://issues.example.com/secure/Dashboard.jspa?selectPageId=789"
+            }
+          ],
+          "component_list": []
         },
         "resolved_people_uid_list": ["bwilson"]
       }
@@ -130,6 +194,32 @@
         "jsmith": "jsmith",
         "adeer": "adoe",
         "l33tCoder1": "bwilson"
+      }
+    },
+    "jira": {
+      "TEST": {
+        "_project_level": [
+          {
+            "name": "test-team",
+            "type": "team"
+          }
+        ]
+      },
+      "PLAT": {
+        "_project_level": [
+          {
+            "name": "platform-team",
+            "type": "team"
+          }
+        ]
+      },
+      "NOPROJECT": {
+        "Backend Component": [
+          {
+            "name": "test-team",
+            "type": "team"
+          }
+        ]
       }
     }
   }

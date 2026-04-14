@@ -47,7 +47,8 @@ type ServiceInterface interface {
 	GetTeamRepositories(teamName string) []Repository
 	GetTeamJiraProjects(teamName string) []JiraConfig
 	GetTeamComponents(teamName string) []Component
-	GetTeamByJiraProject(projectKey string) *Team
+	GetTeamsByComponent(componentName string) []Team
+	GetTeamsByJiraProject(projectKey string) []Team
 	GetOrgByJiraProject(projectKey string) *Org
 	GetJiraProjectOwners(projectKey string) []JiraOwner
 	GetAllJiraProjects() []string

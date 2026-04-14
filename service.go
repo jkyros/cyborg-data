@@ -445,35 +445,70 @@ func (s *Service) GetTeamComponents(teamName string) []Component {
 	return team.Group.ComponentList
 }
 
-// GetTeamByJiraProject returns the team that owns a specific JIRA project
-// Returns nil if no team owns the project
-func (s *Service) GetTeamByJiraProject(projectKey string) *Team {
+// GetTeamsByComponent returns all teams that own a component with the given name
+// Returns empty slice if no teams own a component with that name
+func (s *Service) GetTeamsByComponent(componentName string) []Team {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 
-	if s.data == nil || s.data.Indexes.Jira == nil {
-		return nil
+	if s.data == nil || s.data.Lookups.Teams == nil {
+		return []Team{}
 	}
 
-	projectInfo, exists := s.data.Indexes.Jira[projectKey]
-	if !exists || len(projectInfo.ProjectLevel) == 0 {
-		return nil
-	}
+	var matchingTeams []Team
+	seenTeams := make(map[string]bool) // Avoid duplicates
 
-	// Get the first team owner (there's usually only one)
-	for _, owner := range projectInfo.ProjectLevel {
-		if owner.Type == "team" {
-			if team, exists := s.data.Lookups.Teams[owner.Name]; exists {
-				return &team
+	// Search through all teams for the component
+	for _, team := range s.data.Lookups.Teams {
+		for _, component := range team.Group.ComponentList {
+			if component.Type.Name == componentName && !seenTeams[team.Name] {
+				matchingTeams = append(matchingTeams, team)
+				seenTeams[team.Name] = true
+				break // Move to next team
 			}
 		}
 	}
 
-	return nil
+	return matchingTeams
+}
+
+// GetTeamsByJiraProject returns all teams that own a specific JIRA project
+// Returns empty slice if no teams own the project
+// Includes teams from all levels (project-level, component-level, etc.)
+func (s *Service) GetTeamsByJiraProject(projectKey string) []Team {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+
+	if s.data == nil || s.data.Indexes.Jira == nil {
+		return []Team{}
+	}
+
+	projectInfo, exists := s.data.Indexes.Jira[projectKey]
+	if !exists {
+		return []Team{}
+	}
+
+	var matchingTeams []Team
+	seenTeams := make(map[string]bool) // Avoid duplicates
+
+	// Collect teams from all levels
+	for _, owners := range projectInfo {
+		for _, owner := range owners {
+			if owner.Type == "team" && !seenTeams[owner.Name] {
+				if team, exists := s.data.Lookups.Teams[owner.Name]; exists {
+					matchingTeams = append(matchingTeams, team)
+					seenTeams[owner.Name] = true
+				}
+			}
+		}
+	}
+
+	return matchingTeams
 }
 
 // GetOrgByJiraProject returns the org that owns a specific JIRA project
 // Returns nil if no org owns the project
+// First checks "_project_level" for primary owner, then falls back to any org in the project
 func (s *Service) GetOrgByJiraProject(projectKey string) *Org {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
@@ -483,15 +518,28 @@ func (s *Service) GetOrgByJiraProject(projectKey string) *Org {
 	}
 
 	projectInfo, exists := s.data.Indexes.Jira[projectKey]
-	if !exists || len(projectInfo.ProjectLevel) == 0 {
+	if !exists {
 		return nil
 	}
 
-	// Get the first org owner
-	for _, owner := range projectInfo.ProjectLevel {
-		if owner.Type == "org" {
-			if org, exists := s.data.Lookups.Orgs[owner.Name]; exists {
-				return &org
+	// First try to get the primary project-level owner
+	if projectLevel, hasProjectLevel := projectInfo["_project_level"]; hasProjectLevel {
+		for _, owner := range projectLevel {
+			if owner.Type == "org" {
+				if org, exists := s.data.Lookups.Orgs[owner.Name]; exists {
+					return &org
+				}
+			}
+		}
+	}
+
+	// If no project-level owner, get the first org from any component/sub-project
+	for _, owners := range projectInfo {
+		for _, owner := range owners {
+			if owner.Type == "org" {
+				if org, exists := s.data.Lookups.Orgs[owner.Name]; exists {
+					return &org
+				}
 			}
 		}
 	}
@@ -500,6 +548,7 @@ func (s *Service) GetOrgByJiraProject(projectKey string) *Org {
 }
 
 // GetJiraProjectOwners returns all owners (teams and orgs) for a JIRA project
+// Returns owners from all levels (project-level, component-level, etc.)
 func (s *Service) GetJiraProjectOwners(projectKey string) []JiraOwner {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
@@ -513,7 +562,21 @@ func (s *Service) GetJiraProjectOwners(projectKey string) []JiraOwner {
 		return []JiraOwner{}
 	}
 
-	return projectInfo.ProjectLevel
+	var allOwners []JiraOwner
+	seenOwners := make(map[string]bool) // Deduplicate by owner name
+
+	// Collect all owners from all levels
+	for _, owners := range projectInfo {
+		for _, owner := range owners {
+			ownerKey := owner.Type + ":" + owner.Name
+			if !seenOwners[ownerKey] {
+				allOwners = append(allOwners, owner)
+				seenOwners[ownerKey] = true
+			}
+		}
+	}
+
+	return allOwners
 }
 
 // GetAllJiraProjects returns all JIRA project keys in the index
