@@ -80,6 +80,17 @@
           ]
         }
       },
+      "shared-service": {
+        "uid": "team-003",
+        "name": "shared-service",
+        "description": "Shared service team (same name as team_group)",
+        "type": "team",
+        "parent": {"name": "shared-service", "type": "team_group"},
+        "group": {
+          "type": {"name": "team", "visualize": true},
+          "resolved_people_uid_list": ["jsmith"]
+        }
+      },
       "platform-team": {
         "uid": "team-002",
         "name": "platform-team",
@@ -259,6 +270,17 @@
         "group": {
           "type": {"name": "team_group", "visualize": true},
           "resolved_people_uid_list": ["bwilson"]
+        }
+      },
+      "shared-service": {
+        "uid": "tg-002",
+        "name": "shared-service",
+        "description": "Shared service group (same name as team)",
+        "type": "team_group",
+        "parent": {"name": "engineering", "type": "pillar"},
+        "group": {
+          "type": {"name": "team_group", "visualize": true},
+          "resolved_people_uid_list": ["jsmith"]
         }
       }
     },

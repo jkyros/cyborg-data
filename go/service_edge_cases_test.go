@@ -438,8 +438,8 @@ func TestGetAllTeams(t *testing.T) {
 	service := setupTestService(t)
 
 	teams := service.GetAllTeams()
-	if len(teams) != 2 {
-		t.Errorf("GetAllTeams() returned %d teams, expected 2", len(teams))
+	if len(teams) != 3 {
+		t.Errorf("GetAllTeams() returned %d teams, expected 3", len(teams))
 	}
 }
 
@@ -492,8 +492,8 @@ func TestGetAllTeamGroups(t *testing.T) {
 	service := setupTestService(t)
 
 	tgs := service.GetAllTeamGroups()
-	if len(tgs) != 1 {
-		t.Errorf("GetAllTeamGroups() returned %d team groups, expected 1", len(tgs))
+	if len(tgs) != 2 {
+		t.Errorf("GetAllTeamGroups() returned %d team groups, expected 2", len(tgs))
 	}
 }
 

@@ -160,7 +160,7 @@ func TestGetDescendantsTree(t *testing.T) {
 			entityName:       "engineering",
 			expectedNotNil:   true,
 			expectedType:     "pillar",
-			expectedChildren: 1, // backend-teams
+			expectedChildren: 2, // backend-teams, shared-service
 		},
 		{
 			name:             "team_group tree",
@@ -235,11 +235,20 @@ func TestGetDescendantsTreeFullHierarchy(t *testing.T) {
 	}
 
 	engineering := &platformOrg.Children[0]
-	if len(engineering.Children) != 1 || engineering.Children[0].Name != "backend-teams" {
-		t.Fatalf("Expected backend-teams as child of engineering")
+	if len(engineering.Children) != 2 {
+		t.Fatalf("Expected 2 children of engineering (backend-teams, shared-service), got %d", len(engineering.Children))
 	}
 
-	backend := &engineering.Children[0]
+	var backend *HierarchyNode
+	for i := range engineering.Children {
+		if engineering.Children[i].Name == "backend-teams" {
+			backend = &engineering.Children[i]
+			break
+		}
+	}
+	if backend == nil {
+		t.Fatal("Expected to find backend-teams as child of engineering")
+	}
 	if len(backend.Children) != 1 || backend.Children[0].Name != "platform-team" {
 		t.Fatalf("Expected platform-team as child of backend-teams")
 	}
@@ -256,5 +265,55 @@ func TestGetDescendantsTreeNoData(t *testing.T) {
 	tree := service.GetDescendantsTree("test-org")
 	if tree != nil {
 		t.Error("Expected nil tree when no data loaded")
+	}
+}
+
+func TestGetHierarchyPathNameCollision(t *testing.T) {
+	service := setupTestService(t)
+
+	// "shared-service" exists as both a team and a team_group.
+	// Each should resolve to its own correct hierarchy path.
+
+	teamPath := service.GetHierarchyPath("shared-service", "team")
+	if len(teamPath) == 0 {
+		t.Fatal("Expected non-empty path for shared-service team")
+	}
+
+	// team path: shared-service (team) -> shared-service (team_group) -> engineering (pillar) -> platform-org (org) -> test-org (org)
+	expectedTeamPath := []HierarchyPathEntry{
+		{Name: "shared-service", Type: "team"},
+		{Name: "shared-service", Type: "team_group"},
+		{Name: "engineering", Type: "pillar"},
+		{Name: "platform-org", Type: "org"},
+		{Name: "test-org", Type: "org"},
+	}
+	if len(teamPath) != len(expectedTeamPath) {
+		t.Fatalf("team path: expected %d entries, got %d: %+v", len(expectedTeamPath), len(teamPath), teamPath)
+	}
+	for i, exp := range expectedTeamPath {
+		if teamPath[i].Name != exp.Name || teamPath[i].Type != exp.Type {
+			t.Errorf("team path[%d]: expected %+v, got %+v", i, exp, teamPath[i])
+		}
+	}
+
+	tgPath := service.GetHierarchyPath("shared-service", "team_group")
+	if len(tgPath) == 0 {
+		t.Fatal("Expected non-empty path for shared-service team_group")
+	}
+
+	// team_group path: shared-service (team_group) -> engineering (pillar) -> platform-org (org) -> test-org (org)
+	expectedTGPath := []HierarchyPathEntry{
+		{Name: "shared-service", Type: "team_group"},
+		{Name: "engineering", Type: "pillar"},
+		{Name: "platform-org", Type: "org"},
+		{Name: "test-org", Type: "org"},
+	}
+	if len(tgPath) != len(expectedTGPath) {
+		t.Fatalf("team_group path: expected %d entries, got %d: %+v", len(expectedTGPath), len(tgPath), tgPath)
+	}
+	for i, exp := range expectedTGPath {
+		if tgPath[i].Name != exp.Name || tgPath[i].Type != exp.Type {
+			t.Errorf("team_group path[%d]: expected %+v, got %+v", i, exp, tgPath[i])
+		}
 	}
 }

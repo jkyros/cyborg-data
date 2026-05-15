@@ -558,6 +558,31 @@ func (s *Service) getEntityType(entityName string) string {
 	return ""
 }
 
+// entityExistsWithType checks whether an entity exists in the lookup table for
+// the given type. Unlike getEntityType, this is unambiguous when the same name
+// appears in multiple entity types.
+// Must be called with s.mu held.
+func (s *Service) entityExistsWithType(entityName, entityType string) bool {
+	if s.data == nil {
+		return false
+	}
+	switch strings.ToLower(entityType) {
+	case "team":
+		_, ok := s.data.Lookups.Teams[entityName]
+		return ok
+	case "org":
+		_, ok := s.data.Lookups.Orgs[entityName]
+		return ok
+	case "pillar":
+		_, ok := s.data.Lookups.Pillars[entityName]
+		return ok
+	case "team_group":
+		_, ok := s.data.Lookups.TeamGroups[entityName]
+		return ok
+	}
+	return false
+}
+
 // computeHierarchyPath builds the hierarchy path by walking parent references.
 // Must be called with s.mu held.
 func (s *Service) computeHierarchyPath(entityName, entityType string) []HierarchyPathEntry {
@@ -572,17 +597,14 @@ func (s *Service) computeHierarchyPath(entityName, entityType string) []Hierarch
 			return []HierarchyPathEntry{}
 		}
 	} else {
-		// Validate entity exists with given type
-		actualType := s.getEntityType(entityName)
-		if actualType == "" || !strings.EqualFold(actualType, entityType) {
+		if !s.entityExistsWithType(entityName, entityType) {
 			return []HierarchyPathEntry{}
 		}
-		entityType = actualType
 	}
 
 	path := []HierarchyPathEntry{{Name: entityName, Type: entityType}}
 	visited := make(map[string]bool)
-	visited[entityName] = true
+	visited[entityName+":"+entityType] = true
 
 	currentName := entityName
 	currentType := entityType
@@ -592,10 +614,11 @@ func (s *Service) computeHierarchyPath(entityName, entityType string) []Hierarch
 		if parent == nil {
 			break
 		}
-		if visited[parent.Name] {
+		key := parent.Name + ":" + parent.Type
+		if visited[key] {
 			break
 		}
-		visited[parent.Name] = true
+		visited[key] = true
 		path = append(path, HierarchyPathEntry{Name: parent.Name, Type: parent.Type})
 		currentName = parent.Name
 		currentType = parent.Type

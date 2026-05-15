@@ -84,10 +84,11 @@ func TestHierarchyAPINoDuplicates(t *testing.T) {
 		seen := make(map[string]bool)
 
 		for _, entry := range path {
-			if seen[entry.Name] {
-				t.Errorf("Duplicate in path for %s: %s", teamName, entry.Name)
+			key := entry.Name + ":" + entry.Type
+			if seen[key] {
+				t.Errorf("Duplicate in path for %s: %s (%s)", teamName, entry.Name, entry.Type)
 			}
-			seen[entry.Name] = true
+			seen[key] = true
 		}
 	}
 }
