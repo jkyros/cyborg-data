@@ -49,6 +49,7 @@
     "teams": {
       "test-team": {
         "uid": "team-001",
+        "stable_id": "a1b2c3d4",
         "name": "test-team",
         "description": "Core testing and QA team",
         "type": "team",
@@ -81,6 +82,7 @@
       },
       "platform-team": {
         "uid": "team-002",
+        "stable_id": "e5f6a7b8",
         "name": "platform-team",
         "description": "Platform infrastructure team",
         "type": "team",
@@ -171,6 +173,7 @@
     "orgs": {
       "test-org": {
         "uid": "org-001",
+        "stable_id": "c9d0e1f2",
         "name": "test-org",
         "description": "Test organization",
         "type": "org",
@@ -221,6 +224,7 @@
       },
       "platform-org": {
         "uid": "org-002",
+        "stable_id": "a3b4c5d6",
         "name": "platform-org",
         "description": "Platform organization",
         "type": "org",
@@ -234,6 +238,7 @@
     "pillars": {
       "engineering": {
         "uid": "pillar-001",
+        "stable_id": "e7f8a9b0",
         "name": "engineering",
         "description": "Engineering pillar",
         "type": "pillar",
@@ -250,6 +255,7 @@
     "team_groups": {
       "backend-teams": {
         "uid": "tg-001",
+        "stable_id": "c1d2e3f4",
         "name": "backend-teams",
         "description": "Backend engineering teams",
         "type": "team_group",

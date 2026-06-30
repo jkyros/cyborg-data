@@ -34,6 +34,7 @@ from ._types import (
     OrgInfoType,
     Pillar,
     SlackIDMappings,
+    StableIDResult,
     Team,
     TeamGroup,
 )
@@ -200,6 +201,7 @@ class Service:
         self._watcher_running = False
         self._stop_event = threading.Event()
         self._slack_channel_index: dict[str, list[str]] = {}
+        self._stable_id_index: dict[str, StableIDResult] = {}
 
         if data_source is not None:
             self.load_from_data_source(data_source)
@@ -266,6 +268,20 @@ class Service:
                     if ch.channel:
                         normalized = _normalize_slack_channel(ch.channel)
                         self._slack_channel_index.setdefault(normalized, []).append(team.name)
+
+            self._stable_id_index = {}
+            for team in org_data.lookups.teams.values():
+                if team.stable_id:
+                    self._stable_id_index[team.stable_id] = StableIDResult(name=team.name, type="team")
+            for org in org_data.lookups.orgs.values():
+                if org.stable_id:
+                    self._stable_id_index[org.stable_id] = StableIDResult(name=org.name, type="org")
+            for pillar in org_data.lookups.pillars.values():
+                if pillar.stable_id:
+                    self._stable_id_index[pillar.stable_id] = StableIDResult(name=pillar.name, type="pillar")
+            for tg in org_data.lookups.team_groups.values():
+                if tg.stable_id:
+                    self._stable_id_index[tg.stable_id] = StableIDResult(name=tg.name, type="team_group")
 
         logger.info(
             "Data loaded successfully",
@@ -488,6 +504,51 @@ class Service:
             if team is None:
                 return []
             return list(team.group.escalation)
+
+    def get_entity_by_stable_id(self, stable_id: str) -> StableIDResult | None:
+        """Resolve a stable ID to an entity name and type."""
+        with self._lock:
+            return self._stable_id_index.get(stable_id)
+
+    def get_team_by_stable_id(self, stable_id: str) -> Team | None:
+        """Get a team by its stable ID."""
+        with self._lock:
+            if self._data is None or not self._data.lookups.teams:
+                return None
+            result = self._stable_id_index.get(stable_id)
+            if result is None or result.type != "team":
+                return None
+            return self._data.lookups.teams.get(result.name)
+
+    def get_org_by_stable_id(self, stable_id: str) -> Org | None:
+        """Get an organization by its stable ID."""
+        with self._lock:
+            if self._data is None or not self._data.lookups.orgs:
+                return None
+            result = self._stable_id_index.get(stable_id)
+            if result is None or result.type != "org":
+                return None
+            return self._data.lookups.orgs.get(result.name)
+
+    def get_pillar_by_stable_id(self, stable_id: str) -> Pillar | None:
+        """Get a pillar by its stable ID."""
+        with self._lock:
+            if self._data is None or not self._data.lookups.pillars:
+                return None
+            result = self._stable_id_index.get(stable_id)
+            if result is None or result.type != "pillar":
+                return None
+            return self._data.lookups.pillars.get(result.name)
+
+    def get_team_group_by_stable_id(self, stable_id: str) -> TeamGroup | None:
+        """Get a team group by its stable ID."""
+        with self._lock:
+            if self._data is None or not self._data.lookups.team_groups:
+                return None
+            result = self._stable_id_index.get(stable_id)
+            if result is None or result.type != "team_group":
+                return None
+            return self._data.lookups.team_groups.get(result.name)
 
     def get_org_by_name(self, org_name: str) -> Org | None:
         """Get an organization by name."""

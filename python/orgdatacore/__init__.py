@@ -83,6 +83,7 @@ from ._types import (
     RoleInfo,
     SlackConfig,
     SlackIDMappings,
+    StableIDResult,
     Team,
     TeamGroup,
 )
@@ -140,6 +141,7 @@ __all__ = [
     "PIIMode",
     "DataSource",
     "RedactingDataSource",
+    "StableIDResult",
     "Service",
     "AsyncService",
     "GCSDataSource",

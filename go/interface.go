@@ -51,6 +51,13 @@ type ServiceInterface interface {
 
 	GetTeamEscalation(teamName string) []EscalationContactInfo
 
+	// Stable ID queries
+	GetEntityByStableID(stableID string) *StableIDResult
+	GetTeamByStableID(stableID string) *Team
+	GetOrgByStableID(stableID string) *Org
+	GetPillarByStableID(stableID string) *Pillar
+	GetTeamGroupByStableID(stableID string) *TeamGroup
+
 	GetVersion() DataVersion
 	GetDataAge() time.Duration
 	IsDataStale(maxAge time.Duration) bool

@@ -18,6 +18,7 @@ type Service struct {
 	watcherRunning    bool
 	watcherCancel     context.CancelFunc
 	slackChannelIndex map[string][]string
+	stableIDIndex     map[string]StableIDResult
 }
 
 func NewService(opts ...ServiceOption) *Service {
@@ -68,6 +69,28 @@ func (s *Service) LoadFromDataSource(ctx context.Context, source DataSource) err
 				normalized := normalizeSlackChannel(ch.Channel)
 				s.slackChannelIndex[normalized] = append(s.slackChannelIndex[normalized], team.Name)
 			}
+		}
+	}
+
+	s.stableIDIndex = make(map[string]StableIDResult)
+	for _, team := range orgData.Lookups.Teams {
+		if team.StableID != "" {
+			s.stableIDIndex[team.StableID] = StableIDResult{Name: team.Name, Type: "team"}
+		}
+	}
+	for _, org := range orgData.Lookups.Orgs {
+		if org.StableID != "" {
+			s.stableIDIndex[org.StableID] = StableIDResult{Name: org.Name, Type: "org"}
+		}
+	}
+	for _, pillar := range orgData.Lookups.Pillars {
+		if pillar.StableID != "" {
+			s.stableIDIndex[pillar.StableID] = StableIDResult{Name: pillar.Name, Type: "pillar"}
+		}
+	}
+	for _, tg := range orgData.Lookups.TeamGroups {
+		if tg.StableID != "" {
+			s.stableIDIndex[tg.StableID] = StableIDResult{Name: tg.Name, Type: "team_group"}
 		}
 	}
 
@@ -1032,6 +1055,92 @@ func (s *Service) GetTeamEscalation(teamName string) []EscalationContactInfo {
 	result := make([]EscalationContactInfo, len(team.Group.Escalation))
 	copy(result, team.Group.Escalation)
 	return result
+}
+
+func (s *Service) GetEntityByStableID(stableID string) *StableIDResult {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+
+	if s.stableIDIndex == nil {
+		return nil
+	}
+	result, exists := s.stableIDIndex[stableID]
+	if !exists {
+		return nil
+	}
+	return &result
+}
+
+func (s *Service) GetTeamByStableID(stableID string) *Team {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+
+	if s.stableIDIndex == nil || s.data == nil || s.data.Lookups.Teams == nil {
+		return nil
+	}
+	result, exists := s.stableIDIndex[stableID]
+	if !exists || result.Type != "team" {
+		return nil
+	}
+	team, exists := s.data.Lookups.Teams[result.Name]
+	if !exists {
+		return nil
+	}
+	return &team
+}
+
+func (s *Service) GetOrgByStableID(stableID string) *Org {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+
+	if s.stableIDIndex == nil || s.data == nil || s.data.Lookups.Orgs == nil {
+		return nil
+	}
+	result, exists := s.stableIDIndex[stableID]
+	if !exists || result.Type != "org" {
+		return nil
+	}
+	org, exists := s.data.Lookups.Orgs[result.Name]
+	if !exists {
+		return nil
+	}
+	return &org
+}
+
+func (s *Service) GetPillarByStableID(stableID string) *Pillar {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+
+	if s.stableIDIndex == nil || s.data == nil || s.data.Lookups.Pillars == nil {
+		return nil
+	}
+	result, exists := s.stableIDIndex[stableID]
+	if !exists || result.Type != "pillar" {
+		return nil
+	}
+	pillar, exists := s.data.Lookups.Pillars[result.Name]
+	if !exists {
+		return nil
+	}
+	return &pillar
+}
+
+func (s *Service) GetTeamGroupByStableID(stableID string) *TeamGroup {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+
+	if s.stableIDIndex == nil || s.data == nil || s.data.Lookups.TeamGroups == nil {
+		return nil
+	}
+	result, exists := s.stableIDIndex[stableID]
+	if !exists || result.Type != "team_group" {
+		return nil
+	}
+	tg, exists := s.data.Lookups.TeamGroups[result.Name]
+	if !exists {
+		return nil
+	}
+	return &tg
 }
 
 // GetTeamsForComponent returns all teams/entities that own a component.

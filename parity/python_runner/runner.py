@@ -86,6 +86,10 @@ ENTITY_REGISTRY: dict[str, EntityConfig] = {
         fields=("component", "ownership_types"),
         sort_by=("component",),
     ),
+    "StableIDResult": EntityConfig(
+        fields=("name", "type"),
+        sort_by=("name",),
+    ),
     "ContextItemInfo": EntityConfig(
         fields=("types", "name", "description", "url", "owner", "inheritance", "source_entity", "source_type"),
         sort_by=("name", "source_entity"),

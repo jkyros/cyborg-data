@@ -249,12 +249,22 @@ class ParentInfo(BaseModel):
     type: str = ""
 
 
+class StableIDResult(BaseModel):
+    """Represents an entity resolved from a stable ID."""
+
+    model_config = ConfigDict(frozen=True)
+
+    name: str = ""
+    type: str = ""
+
+
 class Team(BaseModel):
     """Represents a team in the organizational data."""
 
     model_config = ConfigDict(frozen=True)
 
     uid: str = ""
+    stable_id: str = ""
     name: str = ""
     tab_name: str = ""
     description: str = ""
@@ -269,6 +279,7 @@ class Org(BaseModel):
     model_config = ConfigDict(frozen=True)
 
     uid: str = ""
+    stable_id: str = ""
     name: str = ""
     tab_name: str = ""
     description: str = ""
@@ -283,6 +294,7 @@ class Pillar(BaseModel):
     model_config = ConfigDict(frozen=True)
 
     uid: str = ""
+    stable_id: str = ""
     name: str = ""
     tab_name: str = ""
     description: str = ""
@@ -297,6 +309,7 @@ class TeamGroup(BaseModel):
     model_config = ConfigDict(frozen=True)
 
     uid: str = ""
+    stable_id: str = ""
     name: str = ""
     tab_name: str = ""
     description: str = ""

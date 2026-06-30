@@ -89,6 +89,8 @@ class TestInputGenerator:
             return self.catalog.jira_projects
         if name_lower in ("jira_component", "jiracomponent"):
             return self.catalog.jira_components
+        if name_lower in ("stable_id", "stableid"):
+            return self.catalog.stable_ids
         if name_lower == "name":
             return self.catalog.team_names + self.catalog.org_names + self.catalog.pillar_names
         if name_lower in ("entity_name",):
@@ -112,6 +114,8 @@ class TestInputGenerator:
             return self.catalog.invalid_slack_id
         if "github" in name_lower:
             return self.catalog.invalid_github_id
+        if "stable_id" in name_lower or name_lower == "stableid":
+            return self.catalog.invalid_stable_id
         if "team_group" in name_lower or name_lower == "teamgroup":
             return self.catalog.invalid_team_group
         if "team" in name_lower:

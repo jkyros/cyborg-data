@@ -213,6 +213,11 @@ var methodParamNames = map[string][]string{
 	"GetContextByType":             {"entity_name", "context_type", "entity_type"},
 	"GetAllContextTypesForEntity":  {"entity_name", "entity_type"},
 	"GetContextTypeDescriptions":   {},
+	"GetEntityByStableID":          {"stable_id"},
+	"GetTeamByStableID":            {"stable_id"},
+	"GetOrgByStableID":             {"stable_id"},
+	"GetPillarByStableID":          {"stable_id"},
+	"GetTeamGroupByStableID":       {"stable_id"},
 }
 
 func inferParamNames(methodName string, methodType reflect.Type) []string {
@@ -301,6 +306,8 @@ func serializeOutput(output interface{}) interface{} {
 		return val
 	case []string:
 		return serializeStringList(val)
+	case *orgdatacore.StableIDResult:
+		return serializeStableIDResult(val)
 	case *orgdatacore.Employee:
 		return serializeEmployee(val)
 	case []orgdatacore.Employee:
@@ -355,6 +362,16 @@ func serializeStringList(v []string) interface{} {
 	copy(sorted, v)
 	sort.Strings(sorted)
 	return sorted
+}
+
+func serializeStableIDResult(result *orgdatacore.StableIDResult) interface{} {
+	if result == nil {
+		return nil
+	}
+	return map[string]interface{}{
+		"name": result.Name,
+		"type": result.Type,
+	}
 }
 
 func serializeEmployee(emp *orgdatacore.Employee) interface{} {

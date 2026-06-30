@@ -125,9 +125,16 @@ type ParentInfo struct {
 	Type string `json:"type"`
 }
 
+// StableIDResult represents an entity resolved from a stable ID.
+type StableIDResult struct {
+	Name string `json:"name"`
+	Type string `json:"type"`
+}
+
 // Team represents a team in the organizational data
 type Team struct {
 	UID         string      `json:"uid"`
+	StableID    string      `json:"stable_id,omitempty"`
 	Name        string      `json:"name"`
 	TabName     string      `json:"tab_name,omitempty"`
 	Description string      `json:"description,omitempty"`
@@ -189,6 +196,7 @@ type Lookups struct {
 // Org represents an organization in the organizational data
 type Org struct {
 	UID         string      `json:"uid"`
+	StableID    string      `json:"stable_id,omitempty"`
 	Name        string      `json:"name"`
 	TabName     string      `json:"tab_name,omitempty"`
 	Description string      `json:"description,omitempty"`
@@ -200,6 +208,7 @@ type Org struct {
 // Pillar represents a pillar in the organizational hierarchy
 type Pillar struct {
 	UID         string      `json:"uid"`
+	StableID    string      `json:"stable_id,omitempty"`
 	Name        string      `json:"name"`
 	TabName     string      `json:"tab_name,omitempty"`
 	Description string      `json:"description,omitempty"`
@@ -211,6 +220,7 @@ type Pillar struct {
 // TeamGroup represents a team group in the organizational hierarchy
 type TeamGroup struct {
 	UID         string      `json:"uid"`
+	StableID    string      `json:"stable_id,omitempty"`
 	Name        string      `json:"name"`
 	TabName     string      `json:"tab_name,omitempty"`
 	Description string      `json:"description,omitempty"`

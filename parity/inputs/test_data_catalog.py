@@ -19,6 +19,7 @@ class TestDataCatalog:
     pillar_names: list[str] = field(default_factory=list)
     team_group_names: list[str] = field(default_factory=list)
     component_names: list[str] = field(default_factory=list)
+    stable_ids: list[str] = field(default_factory=list)
     jira_projects: list[str] = field(default_factory=list)
     jira_components: list[str] = field(default_factory=list)
     slack_channels: list[str] = field(default_factory=list)
@@ -32,6 +33,7 @@ class TestDataCatalog:
     invalid_pillar: str = "nonexistent-pillar-xyz"
     invalid_team_group: str = "nonexistent-team-group-xyz"
     invalid_component: str = "nonexistent-component-xyz"
+    invalid_stable_id: str = "00000000"
     invalid_jira_project: str = "INVALID"
     raw_data: dict[str, Any] = field(default_factory=dict)
 
@@ -77,6 +79,11 @@ def load_catalog(test_data_path: Path) -> TestDataCatalog:
     catalog.pillar_names = list(lookups.get("pillars", {}).keys())
     catalog.team_group_names = list(lookups.get("team_groups", {}).keys())
     catalog.component_names = list(lookups.get("components", {}).keys())
+
+    for entity_type in ("teams", "orgs", "pillars", "team_groups"):
+        for entity in lookups.get(entity_type, {}).values():
+            if sid := entity.get("stable_id"):
+                catalog.stable_ids.append(sid)
 
     for project, components_map in indexes.get("jira", {}).items():
         catalog.jira_projects.append(project)
