@@ -166,6 +166,111 @@ func (s *Service) GetOrgByName(orgName string) *Org {
 	return &org
 }
 
+// GetAllEmployees returns all employees keyed by UID.
+func (s *Service) GetAllEmployees() map[string]Employee {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+	if s.data == nil {
+		return nil
+	}
+	return s.data.Lookups.Employees
+}
+
+// GetAllOrgs returns all org entities keyed by name.
+func (s *Service) GetAllOrgs() map[string]Org {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+	if s.data == nil {
+		return nil
+	}
+	return s.data.Lookups.Orgs
+}
+
+// GetAllPillars returns all pillar entities keyed by name.
+func (s *Service) GetAllPillars() map[string]Org {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+	if s.data == nil {
+		return nil
+	}
+	return s.data.Lookups.Pillars
+}
+
+// GetAllTeamGroups returns all team group entities keyed by name.
+func (s *Service) GetAllTeamGroups() map[string]Org {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+	if s.data == nil {
+		return nil
+	}
+	return s.data.Lookups.TeamGroups
+}
+
+// GetTeamParent returns the parent reference for a team, or nil if not found.
+func (s *Service) GetTeamParent(teamName string) *ParentRef {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+	if s.data == nil {
+		return nil
+	}
+	team, ok := s.data.Lookups.Teams[teamName]
+	if !ok || team.Parent.Name == "" {
+		return nil
+	}
+	return &team.Parent
+}
+
+// GetOrgParent returns the parent reference for an org/pillar/team_group, or nil.
+func (s *Service) GetOrgParent(orgName string) *ParentRef {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+	if s.data == nil {
+		return nil
+	}
+	if org, ok := s.data.Lookups.Orgs[orgName]; ok && org.Parent.Name != "" {
+		return &org.Parent
+	}
+	if p, ok := s.data.Lookups.Pillars[orgName]; ok && p.Parent.Name != "" {
+		return &p.Parent
+	}
+	if tg, ok := s.data.Lookups.TeamGroups[orgName]; ok && tg.Parent.Name != "" {
+		return &tg.Parent
+	}
+	return nil
+}
+
+// GetAllTeamNames returns the names of all teams in the data.
+func (s *Service) GetAllTeamNames() []string {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+	if s.data == nil {
+		return nil
+	}
+	names := make([]string, 0, len(s.data.Lookups.Teams))
+	for name := range s.data.Lookups.Teams {
+		names = append(names, name)
+	}
+	return names
+}
+
+// GetTeamAncestry returns the org hierarchy ancestry for a team.
+func (s *Service) GetTeamAncestry(teamName string) *RelationshipInfo {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+	if s.data == nil {
+		return nil
+	}
+	teamsIndex := s.data.Indexes.Membership.RelationshipIndex["teams"]
+	if teamsIndex == nil {
+		return nil
+	}
+	ri, ok := teamsIndex[teamName]
+	if !ok {
+		return nil
+	}
+	return &ri
+}
+
 // GetTeamsForUID returns all teams a UID is a member of
 func (s *Service) GetTeamsForUID(uid string) []string {
 	s.mu.RLock()

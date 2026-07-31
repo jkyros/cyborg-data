@@ -27,6 +27,14 @@ type ServiceInterface interface {
 	GetEmployeeBySlackID(slackID string) *Employee
 	GetTeamByName(teamName string) *Team
 	GetOrgByName(orgName string) *Org
+	GetAllOrgs() map[string]Org
+	GetAllPillars() map[string]Org
+	GetAllTeamGroups() map[string]Org
+	GetAllEmployees() map[string]Employee
+	GetAllTeamNames() []string
+	GetTeamAncestry(teamName string) *RelationshipInfo
+	GetTeamParent(teamName string) *ParentRef
+	GetOrgParent(orgName string) *ParentRef
 
 	// Membership queries
 

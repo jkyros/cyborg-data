@@ -6,21 +6,30 @@ import (
 
 // Employee represents an employee in the organizational data
 type Employee struct {
-	UID      string `json:"uid"`
-	FullName string `json:"full_name"`
-	Email    string `json:"email"`
-	JobTitle string `json:"job_title"`
-	SlackUID string `json:"slack_uid"`
-	GithubID string `json:"github_id"`
+	UID        string `json:"uid"`
+	FullName   string `json:"full_name"`
+	Email      string `json:"email"`
+	JobTitle   string `json:"job_title"`
+	SlackUID   string `json:"slack_uid"`
+	GithubID   string `json:"github_id"`
+	ManagerUID string `json:"manager_uid"`
+	Timezone   string `json:"timezone"`
+}
+
+// ParentRef identifies a parent entity in the org hierarchy.
+type ParentRef struct {
+	Name string `json:"name"`
+	Type string `json:"type"` // "org", "pillar", "team_group"
 }
 
 // Team represents a team in the organizational data
 type Team struct {
-	UID                   string   `json:"uid"`
-	Name                  string   `json:"name"`
-	Type                  string   `json:"type"`
-	Group                 Group    `json:"group"`
-	ResolvedPeopleUIDList []string `json:"resolved_people_uid_list"`
+	UID                   string    `json:"uid"`
+	Name                  string    `json:"name"`
+	Type                  string    `json:"type"`
+	Group                 Group     `json:"group"`
+	ResolvedPeopleUIDList []string  `json:"resolved_people_uid_list"`
+	Parent                ParentRef `json:"parent"`
 }
 
 // Group contains group metadata
@@ -83,17 +92,20 @@ type Metadata struct {
 
 // Lookups contains the main data objects
 type Lookups struct {
-	Employees map[string]Employee `json:"employees"`
-	Teams     map[string]Team     `json:"teams"`
-	Orgs      map[string]Org      `json:"orgs"`
+	Employees  map[string]Employee `json:"employees"`
+	Teams      map[string]Team     `json:"teams"`
+	Orgs       map[string]Org      `json:"orgs"`
+	Pillars    map[string]Org      `json:"pillars"`
+	TeamGroups map[string]Org      `json:"team_groups"`
 }
 
-// Org represents an organization in the organizational data
+// Org represents an organization, pillar, or team group in the organizational data
 type Org struct {
-	UID   string `json:"uid"`
-	Name  string `json:"name"`
-	Type  string `json:"type"`
-	Group struct {
+	UID    string    `json:"uid"`
+	Name   string    `json:"name"`
+	Type   string    `json:"type"`
+	Parent ParentRef `json:"parent"`
+	Group  struct {
 		ResolvedPeopleUIDList []string `json:"resolved_people_uid_list"`
 	} `json:"group"`
 }
