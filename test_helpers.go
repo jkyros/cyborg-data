@@ -93,7 +93,9 @@ func CreateTestData() *Data {
 					Name: "test-division",
 					Type: "organization",
 					Group: struct {
-						ResolvedPeopleUIDList []string `json:"resolved_people_uid_list"`
+						ResolvedPeopleUIDList []string              `json:"resolved_people_uid_list"`
+						ResolvedContext       []ResolvedContextItem `json:"resolved_context"`
+						Jiras                 []JiraConfig          `json:"jiras"`
 					}{
 						ResolvedPeopleUIDList: []string{"testuser1", "testuser2"},
 					},

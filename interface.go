@@ -64,6 +64,8 @@ type ServiceInterface interface {
 	GetTeamsByRepositoryPattern(pattern string) []Team
 	GetTeamJiraDashboards(teamName string) []JiraConfig
 	GetTeamJiraDashboardByType(teamName string, dashboardType string) *JiraConfig
+	GetOrgJiraDashboards(orgName string) []JiraConfig
+	GetOrgJiraDashboardByType(orgName string, dashboardType string) *JiraConfig
 
 	// Data management
 

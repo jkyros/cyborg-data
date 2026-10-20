@@ -446,6 +446,142 @@ func TestGetTeamJiraDashboardByType(t *testing.T) {
 	}
 }
 
+// TestGetOrgJiraDashboards tests fetching dashboards from orgs, pillars, and team groups
+func TestGetOrgJiraDashboards(t *testing.T) {
+	service := setupTestService(t)
+
+	tests := []struct {
+		name          string
+		orgName       string
+		expectedCount int
+		checkType     string
+	}{
+		{
+			name:          "test-org has dashboard",
+			orgName:       "test-org",
+			expectedCount: 1,
+			checkType:     "priority-dashboard",
+		},
+		{
+			name:          "platform-org has no dashboards",
+			orgName:       "platform-org",
+			expectedCount: 0,
+			checkType:     "",
+		},
+		{
+			name:          "pillar has dashboard",
+			orgName:       "engineering",
+			expectedCount: 1,
+			checkType:     "bug-dashboard",
+		},
+		{
+			name:          "team_group has dashboard",
+			orgName:       "backend-teams",
+			expectedCount: 1,
+			checkType:     "kanban-dashboard",
+		},
+		{
+			name:          "nonexistent org",
+			orgName:       "nonexistent-org",
+			expectedCount: 0,
+			checkType:     "",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result := service.GetOrgJiraDashboards(tt.orgName)
+			if len(result) != tt.expectedCount {
+				t.Errorf("GetOrgJiraDashboards(%q) returned %d dashboards, want %d", tt.orgName, len(result), tt.expectedCount)
+			}
+
+			if tt.checkType != "" {
+				found := false
+				for _, dashboard := range result {
+					for _, dashboardType := range dashboard.Types {
+						if dashboardType == tt.checkType {
+							found = true
+							break
+						}
+					}
+					if found {
+						break
+					}
+				}
+				if !found {
+					t.Errorf("GetOrgJiraDashboards(%q) did not include dashboard type %q", tt.orgName, tt.checkType)
+				}
+			}
+		})
+	}
+}
+
+// TestGetOrgJiraDashboardByType tests fetching a specific dashboard type from orgs, pillars, and team groups
+func TestGetOrgJiraDashboardByType(t *testing.T) {
+	service := setupTestService(t)
+
+	tests := []struct {
+		name          string
+		orgName       string
+		dashboardType string
+		shouldFind    bool
+		expectedView  string
+	}{
+		{
+			name:          "test-org has priority-dashboard",
+			orgName:       "test-org",
+			dashboardType: "priority-dashboard",
+			shouldFind:    true,
+			expectedView:  "https://issues.example.com/secure/PortfolioPlanView.jspa?id=100",
+		},
+		{
+			name:          "test-org does not have scrum-dashboard",
+			orgName:       "test-org",
+			dashboardType: "scrum-dashboard",
+			shouldFind:    false,
+			expectedView:  "",
+		},
+		{
+			name:          "pillar has bug-dashboard",
+			orgName:       "engineering",
+			dashboardType: "bug-dashboard",
+			shouldFind:    true,
+			expectedView:  "https://issues.example.com/secure/Dashboard.jspa?selectPageId=200",
+		},
+		{
+			name:          "team_group has kanban-dashboard",
+			orgName:       "backend-teams",
+			dashboardType: "kanban-dashboard",
+			shouldFind:    true,
+			expectedView:  "https://issues.example.com/secure/RapidBoard.jspa?rapidView=300",
+		},
+		{
+			name:          "nonexistent org",
+			orgName:       "nonexistent-org",
+			dashboardType: "priority-dashboard",
+			shouldFind:    false,
+			expectedView:  "",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result := service.GetOrgJiraDashboardByType(tt.orgName, tt.dashboardType)
+			if tt.shouldFind {
+				if result == nil {
+					t.Errorf("GetOrgJiraDashboardByType(%q, %q) = nil, want dashboard", tt.orgName, tt.dashboardType)
+				} else if result.View != tt.expectedView {
+					t.Errorf("GetOrgJiraDashboardByType(%q, %q) view = %q, want %q", tt.orgName, tt.dashboardType, result.View, tt.expectedView)
+				}
+			} else {
+				if result != nil {
+					t.Errorf("GetOrgJiraDashboardByType(%q, %q) = %v, want nil", tt.orgName, tt.dashboardType, result)
+				}
+			}
+		})
+	}
+}
+
 // TestGetTeamComponents tests fetching team components
 func TestGetTeamComponents(t *testing.T) {
 	service := setupTestService(t)

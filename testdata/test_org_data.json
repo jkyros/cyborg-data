@@ -131,15 +131,61 @@
         "name": "test-org",
         "type": "organization",
         "group": {
-          "resolved_people_uid_list": ["jsmith", "adoe", "bwilson"]
+          "resolved_people_uid_list": ["jsmith", "adoe", "bwilson"],
+          "jiras": [
+            {
+              "project": "TESTORG",
+              "types": ["priority-dashboard"],
+              "view": "https://issues.example.com/secure/PortfolioPlanView.jspa?id=100"
+            },
+            {
+              "project": "TESTORG",
+              "component": "Core",
+              "types": ["bug"]
+            }
+          ]
         }
       },
       "platform-org": {
-        "uid": "org2", 
+        "uid": "org2",
         "name": "platform-org",
         "type": "organization",
         "group": {
           "resolved_people_uid_list": ["bwilson"]
+        }
+      }
+    },
+    "pillars": {
+      "engineering": {
+        "uid": "pillar1",
+        "name": "engineering",
+        "type": "pillar",
+        "group": {
+          "resolved_people_uid_list": ["jsmith", "bwilson"],
+          "jiras": [
+            {
+              "project": "ENG",
+              "types": ["bug-dashboard"],
+              "view": "https://issues.example.com/secure/Dashboard.jspa?selectPageId=200"
+            }
+          ]
+        }
+      }
+    },
+    "team_groups": {
+      "backend-teams": {
+        "uid": "tg1",
+        "name": "backend-teams",
+        "type": "team_group",
+        "group": {
+          "resolved_people_uid_list": ["bwilson"],
+          "jiras": [
+            {
+              "project": "BACKEND",
+              "types": ["kanban-dashboard"],
+              "view": "https://issues.example.com/secure/RapidBoard.jspa?rapidView=300"
+            }
+          ]
         }
       }
     }

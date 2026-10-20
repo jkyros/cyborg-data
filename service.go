@@ -821,3 +821,104 @@ func (s *Service) GetTeamJiraDashboardByType(teamName string, dashboardType stri
 
 	return nil
 }
+
+// GetTeamContext returns the resolved context items for a team.
+func (s *Service) GetTeamContext(teamName string) []ResolvedContextItem {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+
+	if s.data == nil || s.data.Lookups.Teams == nil {
+		return nil
+	}
+
+	team, exists := s.data.Lookups.Teams[teamName]
+	if !exists {
+		return nil
+	}
+
+	return team.Group.ResolvedContext
+}
+
+// GetOrgContext returns the resolved context items for an org, pillar, or team group.
+func (s *Service) GetOrgContext(orgName string) []ResolvedContextItem {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+
+	if s.data == nil {
+		return nil
+	}
+
+	for _, lookup := range []map[string]Org{s.data.Lookups.Orgs, s.data.Lookups.Pillars, s.data.Lookups.TeamGroups} {
+		if org, ok := lookup[orgName]; ok {
+			return org.Group.ResolvedContext
+		}
+	}
+
+	return nil
+}
+
+// GetOrgJiraDashboards returns all JIRA dashboard URLs for an org, pillar, or team group.
+// Searches Orgs, Pillars, and TeamGroups maps (same pattern as GetOrgContext).
+func (s *Service) GetOrgJiraDashboards(orgName string) []JiraConfig {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+
+	if s.data == nil {
+		return []JiraConfig{}
+	}
+
+	for _, lookup := range []map[string]Org{s.data.Lookups.Orgs, s.data.Lookups.Pillars, s.data.Lookups.TeamGroups} {
+		if org, ok := lookup[orgName]; ok {
+			var dashboards []JiraConfig
+			for _, jira := range org.Group.Jiras {
+				if jira.View != "" {
+					dashboards = append(dashboards, jira)
+				}
+			}
+			return dashboards
+		}
+	}
+
+	return []JiraConfig{}
+}
+
+// GetOrgJiraDashboardByType returns a specific type of JIRA dashboard for an org, pillar, or team group.
+// Searches Orgs, Pillars, and TeamGroups maps (same pattern as GetOrgContext).
+// Returns nil if the entity doesn't have a dashboard of that type.
+func (s *Service) GetOrgJiraDashboardByType(orgName string, dashboardType string) *JiraConfig {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+
+	if s.data == nil {
+		return nil
+	}
+
+	for _, lookup := range []map[string]Org{s.data.Lookups.Orgs, s.data.Lookups.Pillars, s.data.Lookups.TeamGroups} {
+		if org, ok := lookup[orgName]; ok {
+			for _, jira := range org.Group.Jiras {
+				if jira.View != "" {
+					for _, jiraType := range jira.Types {
+						if jiraType == dashboardType {
+							return &jira
+						}
+					}
+				}
+			}
+			return nil
+		}
+	}
+
+	return nil
+}
+
+// GetAllTeams returns all teams in the data.
+func (s *Service) GetAllTeams() map[string]Team {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+
+	if s.data == nil {
+		return nil
+	}
+
+	return s.data.Lookups.Teams
+}

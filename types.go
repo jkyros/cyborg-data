@@ -34,11 +34,12 @@ type Team struct {
 
 // Group contains group metadata
 type Group struct {
-	Type                  GroupType    `json:"type"`
-	ResolvedPeopleUIDList []string     `json:"resolved_people_uid_list"`
-	Repos                 []Repository `json:"repos"`
-	Jiras                 []JiraConfig `json:"jiras"`
-	ComponentList         []Component  `json:"component_list"`
+	Type                  GroupType             `json:"type"`
+	ResolvedPeopleUIDList []string              `json:"resolved_people_uid_list"`
+	Repos                 []Repository          `json:"repos"`
+	Jiras                 []JiraConfig          `json:"jiras"`
+	ComponentList         []Component           `json:"component_list"`
+	ResolvedContext       []ResolvedContextItem `json:"resolved_context"`
 }
 
 // Repository represents a code repository associated with a team
@@ -74,6 +75,18 @@ type GroupType struct {
 	Name string `json:"name"`
 }
 
+// ResolvedContextItem is a pre-resolved context entry from the org registry.
+type ResolvedContextItem struct {
+	Name         string   `json:"name"`
+	Description  string   `json:"description"`
+	URL          string   `json:"url"`
+	Types        []string `json:"types"`
+	Owner        string   `json:"owner"`
+	Inheritance  string   `json:"inheritance"`
+	SourceEntity string   `json:"source_entity"`
+	SourceType   string   `json:"source_type"`
+}
+
 // Data represents the comprehensive organizational data structure
 type Data struct {
 	Metadata Metadata `json:"metadata"`
@@ -106,7 +119,9 @@ type Org struct {
 	Type   string    `json:"type"`
 	Parent ParentRef `json:"parent"`
 	Group  struct {
-		ResolvedPeopleUIDList []string `json:"resolved_people_uid_list"`
+		ResolvedPeopleUIDList []string              `json:"resolved_people_uid_list"`
+		ResolvedContext       []ResolvedContextItem `json:"resolved_context"`
+		Jiras                 []JiraConfig          `json:"jiras"`
 	} `json:"group"`
 }
 
